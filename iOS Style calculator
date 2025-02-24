@@ -1,1 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Style Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: rgb(165, 150, 150);
+            color: white;
+            position: relative;
+        }
+        .container {
+            display: flex;
+            position: relative;
+        }
+        .calculator {
+            width: 320px;
+            background: black;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: right;
+            position: relative;
+            box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.2);
+            transition: margin-left 0.3s ease-in-out;
+        }
+        #display {
+            width: 100%;
+            height: 80px;
+            font-size: 2.5em;
+            background: black;
+            color: white;
+            border: none;
+            text-align: right;
+            padding: 10px;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            font-size: 1.8em;
+            padding: 20px;
+            border: none;
+            background: #333;
+            color: white;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease-in-out;
+        }
+        button:active {
+            background: #666;
+            transform: scale(1.1);
+            box-shadow: 0px 0px 15px white;
+            border: 2px solid white;
+        }
+        .operator {
+            background: orange;
+        }
+        .operator:active {
+            background: #ffcc00;
+        }
+        .history-sidebar {
+            width: 250px;
+            background: #222;
+            position: absolute;
+            left: -270px;
+            top: 0;
+            height: 97%;
+            padding: 10px;
+            overflow-y: auto;
+            border-radius: 10px;
+            transition: left 0.3s ease-in-out;
+            text-align: left;
+            color: white;
+            box-shadow: 2px 0px 10px rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .history-sidebar.open {
+            left: 0;
+        }
+        .history-sidebar h2 {
+            text-align: center;
+            border-bottom: 1px solid white;
+            padding-bottom: 5px;
+        }
+        .toggle-sidebar {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            background: grey;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            font-size: 1em;
+        }
+        .history-item {
+            padding: 5px;
+            border-bottom: 1px solid white;
+        }
+        .clear-history {
+            width: 80%;
+            text-align: center;
+            background: #ff4444;
+            color: white;
+            padding: 8px;
+            margin: 10px auto;
+            cursor: pointer;
+            border-radius: 20px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="history-sidebar" id="historySidebar">
+            <h2>History</h2>
+            <div id="history"></div>
+            <button class="clear-history" onclick="clearHistory()">Clear</button>
+        </div>
+        <div class="calculator" id="calculator">
+            <button class="toggle-sidebar" onclick="toggleHistory()">☰</button>
+            <input type="text" id="display" disabled>
+            <div class="buttons">
+                <button onclick="clearDisplay()">AC</button>
+                <button onclick="appendInput('+/-')">+/-</button>
+                <button onclick="appendInput('%')">%</button>
+                <button class="operator" onclick="appendOperator('/')">÷</button>
+                <button onclick="appendInput('7')">7</button>
+                <button onclick="appendInput('8')">8</button>
+                <button onclick="appendInput('9')">9</button>
+                <button class="operator" onclick="appendOperator('*')">×</button>
+                <button onclick="appendInput('4')">4</button>
+                <button onclick="appendInput('5')">5</button>
+                <button onclick="appendInput('6')">6</button>
+                <button class="operator" onclick="appendOperator('-')">-</button>
+                <button onclick="appendInput('1')">1</button>
+                <button onclick="appendInput('2')">2</button>
+                <button onclick="appendInput('3')">3</button>
+                <button class="operator" onclick="appendOperator('+')">+</button>
+                <button onclick="appendInput('0')" style="grid-column: span 2; border-radius: 40px;">0</button>
+                <button onclick="appendInput('.')">.</button>
+                <button class="operator" onclick="calculate()">=</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let history = [];
+        let newCalculation = false;
 
+        function appendInput(value) {
+            if (newCalculation) {
+                document.getElementById('display').value = '';
+                newCalculation = false;
+            }
+            document.getElementById('display').value += value;
+        }
+
+        function appendOperator(operator) {
+            let display = document.getElementById('display');
+            if (newCalculation) {
+                newCalculation = false;
+            }
+            if (display.value !== '') {
+                display.value += operator;
+            }
+        }
+
+        function clearDisplay() {
+            document.getElementById('display').value = '';
+        }
+
+        function calculate() {
+            try {
+                let expression = document.getElementById('display').value;
+                let result = eval(expression);
+                history.push(`<div class='history-item'>${expression} = ${result}</div>`);
+                if (history.length > 5) history.shift();
+                updateHistory();
+                document.getElementById('display').value = result;
+                newCalculation = true;
+            } catch (e) {
+                document.getElementById('display').value = 'Error';
+            }
+        }
+
+        function updateHistory() {
+            document.getElementById('history').innerHTML = history.join('');
+        }
+
+        function toggleHistory() {
+            let sidebar = document.getElementById('historySidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function clearHistory() {
+            history = [];
+            updateHistory();
+        }
+    </script>
+</body>
+</html>
